@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<dialect xmlns="http://www.thymeleaf.org/extras/dialect"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://www.thymeleaf.org/extras/dialect
+                      http://www.thymeleaf.org/xsd/thymeleaf-extras-dialect-3.0.xsd"
+         prefix="awdl"
+         namespace-uri="http://www.thymeleaf.org/awdl"
+         namespace-strict="false"
+         class="com.john.web.core.thymeleaf.url.dialect.DynamicResourceLocationDialect">
+
+    <!-- URL and form-specific attribute processors -->
+    <!-- ========================================== -->
+
+    <attribute-processor
+            name="href"
+            class="com.john.web.core.thymeleaf.url.processor.DynamicHrefAttributeTagProcessor">
+
+    </attribute-processor>
+
+    <attribute-processor
+            name="src"
+            class="com.john.web.core.thymeleaf.url.processor.DynamicSrcAttributeTagProcessor"/>
+
+    <attribute-processor
+            name="url"
+            class="com.john.web.core.thymeleaf.url.processor.DynamicUrlAttributeTagProcessor"/>
+
+   <!-- <expression-object name="fields"            class="org.thymeleaf.spring4.expression.Fields"/>
+    <expression-object name="mvc"               class="org.thymeleaf.spring4.expression.Mvc"/>
+    <expression-object name="requestdatavalues" class="org.thymeleaf.spring4.expression.RequestDataValues"/>
+    <expression-object name="themes"            class="org.thymeleaf.spring4.expression.Themes"/>-->
+
+</dialect>
