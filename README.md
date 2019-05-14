@@ -12,3 +12,8 @@ HTML示例片段
 <link href="../static/lib/bootstrap/dist/css/bootstrap.css" awdl:href="@{/static/lib/bootstrap/dist/css/bootstrap.min.css}" rel="stylesheet" />
 <link href="../static/custlib/sb-admin/css/sb-admin-2.css" awdl:href="@{/static/custlib/sb-admin/css/sb-admin-2.css}" rel="stylesheet" />
 ```
+根据以上示例，
+
+    1.会自动根据配置，将"/static/lib/bootstrap/dist/css/bootstrap.min.css"替换为具体的配置地址。
+    
+    2.对于本地资源文件"/static/custlib/sb-admin/css/sb-admin-2.css"，则会根据配置替换为压缩后的文件地址，一般为"/static/custlib/sb-admin/css/sb-admin-2.min.css"
