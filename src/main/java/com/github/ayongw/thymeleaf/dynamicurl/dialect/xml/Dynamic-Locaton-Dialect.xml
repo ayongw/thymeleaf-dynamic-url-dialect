@@ -7,24 +7,24 @@
          prefix="awdl"
          namespace-uri="http://www.thymeleaf.org/awdl"
          namespace-strict="false"
-         class="com.john.web.core.thymeleaf.url.dialect.DynamicResourceLocationDialect">
+         class="com.github.ayongw.thymeleaf.dynamicurl.dialect.DynamicResourceLocationDialect">
 
     <!-- URL and form-specific attribute processors -->
     <!-- ========================================== -->
 
     <attribute-processor
             name="href"
-            class="com.john.web.core.thymeleaf.url.processor.DynamicHrefAttributeTagProcessor">
+            class="com.github.ayongw.thymeleaf.dynamicurl.processor.DynamicHrefAttributeTagProcessor">
 
     </attribute-processor>
 
     <attribute-processor
             name="src"
-            class="com.john.web.core.thymeleaf.url.processor.DynamicSrcAttributeTagProcessor"/>
+            class="com.github.ayongw.thymeleaf.dynamicurl.processor.DynamicSrcAttributeTagProcessor"/>
 
     <attribute-processor
             name="url"
-            class="com.john.web.core.thymeleaf.url.processor.DynamicUrlAttributeTagProcessor"/>
+            class="com.github.ayongw.thymeleaf.dynamicurl.processor.DynamicUrlAttributeTagProcessor"/>
 
    <!-- <expression-object name="fields"            class="org.thymeleaf.spring4.expression.Fields"/>
     <expression-object name="mvc"               class="org.thymeleaf.spring4.expression.Mvc"/>
