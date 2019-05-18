@@ -33,7 +33,6 @@ public class DynamicResourceLocationDialectAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(prefix = LocalResourceMappingConfigProps.CONFIG_PREFIX, name = "remote-url-map", matchIfMissing = false)
     public DynamicResourceLocationService dynamicResourceLocationService() {
         Map<String, String> remoteUrlMap = localResourceMapping.getRemoteUrlMap();
 
