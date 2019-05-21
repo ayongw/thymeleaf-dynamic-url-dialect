@@ -13,7 +13,7 @@
 
     <groupId>com.github.ayongw</groupId>
     <artifactId>thymeleaf-dynamic-url-dialect</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <name>thymeleaf-dynamic-url-dialect</name>
     <url>https://github.com/ayongw/thymeleaf-dynamic-url-dialect</url>
     <description>dynamic replace resources url for thymeleaf </description>
