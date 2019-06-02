@@ -79,7 +79,7 @@ public class AbstractResourceLocationAttributeTagProcessor extends AbstractStand
      * @param dynamicProcessConf 配置参数vo
      */
     public AbstractResourceLocationAttributeTagProcessor(String dialectPrefix, String attrName, String outputAttrName, DynamicProcessConf dynamicProcessConf) {
-        super(TemplateMode.HTML, dialectPrefix, attrName, PRECEDENCE, !attrName.equalsIgnoreCase(outputAttrName), true);
+        super(TemplateMode.HTML, dialectPrefix, attrName, PRECEDENCE, attrName.equalsIgnoreCase(outputAttrName), true);
         this.dynamicProcessConf = dynamicProcessConf;
         this.outputAttrName = outputAttrName;
 
