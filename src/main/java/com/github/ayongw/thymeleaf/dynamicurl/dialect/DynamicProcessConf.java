@@ -1,10 +1,17 @@
 package com.github.ayongw.thymeleaf.dynamicurl.dialect;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 静态资源处理配置
+ *
  * @author jiangguangtao 2018/4/6
  */
 public class DynamicProcessConf implements Serializable {
@@ -31,6 +38,11 @@ public class DynamicProcessConf implements Serializable {
      * 本地资源文件替换为远程资源文件位置的前缀
      */
     private String[] remoteReplacePrefixes;
+
+    /**
+     * 保存排除路径地址列表，用map存储用于加快查询
+     */
+    private Map<String, Boolean> excludePathMap;
 
     public DynamicProcessConf() {
     }
@@ -83,6 +95,31 @@ public class DynamicProcessConf implements Serializable {
     public void setRemoteReplacePrefixes(String[] remoteReplacePrefixes) {
         this.remoteReplacePrefixes = remoteReplacePrefixes;
     }
+
+    public void setExcludePaths(List<String> excludePaths) {
+        if (CollectionUtils.isEmpty(excludePaths)) {
+            this.excludePathMap = null;
+            return;
+        }
+
+        int size = excludePaths.size() > 32 ? 32 : excludePaths.size();
+        excludePathMap = new HashMap<>(size);
+        excludePaths.forEach(path -> excludePathMap.put(StringUtils.lowerCase(path), Boolean.TRUE));
+    }
+
+    /**
+     * 判断指定的路径是否在排除列表中
+     *
+     * @param path 路径参数
+     * @return true在，false不在
+     */
+    public boolean isExcludedPath(String path) {
+        if (StringUtils.isBlank(path)) {
+            return false;
+        }
+        return null != excludePathMap && excludePathMap.containsKey(StringUtils.lowerCase(path));
+    }
+
 
     @Override
     public String toString() {

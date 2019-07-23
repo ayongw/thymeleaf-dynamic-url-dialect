@@ -4,6 +4,7 @@ import com.github.ayongw.thymeleaf.dynamicurl.dialect.DynamicProcessConf;
 import com.github.ayongw.thymeleaf.dynamicurl.dialect.DynamicResourceLocationDialect;
 import com.github.ayongw.thymeleaf.dynamicurl.service.DynamicResourceLocationService;
 import com.github.ayongw.thymeleaf.dynamicurl.service.PropertyDynamicResourceLocationService;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -53,6 +54,11 @@ public class DynamicResourceLocationDialectAutoConfiguration {
         if (StringUtils.isNotBlank(localResourceMapping.getRemotePrefix())) {
             conf.setRemoteReplacePrefixes(StringUtils.split(localResourceMapping.getRemotePrefix()));
         }
+
+        if (CollectionUtils.isNotEmpty(localResourceMapping.getExcludePaths())) {
+            conf.setExcludePaths(localResourceMapping.getExcludePaths());
+        }
+
         return new DynamicResourceLocationDialect(conf);
     }
 

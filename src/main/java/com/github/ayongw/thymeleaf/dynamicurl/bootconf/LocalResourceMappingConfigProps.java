@@ -2,6 +2,7 @@ package com.github.ayongw.thymeleaf.dynamicurl.bootconf;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -50,6 +51,13 @@ public class LocalResourceMappingConfigProps {
      */
     private Map<String, String> remoteUrlMap;
 
+    /**
+     * exclude convert path list
+     * <p>
+     * 排除，不会转换的地址列表， 这些路径地址将直接原样输出不做任务改变
+     */
+    private List<String> excludePaths;
+
 
     public boolean isEnable() {
         return enable;
@@ -97,5 +105,13 @@ public class LocalResourceMappingConfigProps {
 
     public void setRemoteUrlMap(Map<String, String> remoteUrlMap) {
         this.remoteUrlMap = remoteUrlMap;
+    }
+
+    public List<String> getExcludePaths() {
+        return excludePaths;
+    }
+
+    public void setExcludePaths(List<String> excludePaths) {
+        this.excludePaths = excludePaths;
     }
 }

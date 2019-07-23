@@ -47,7 +47,8 @@ public class AbstractResourceLocationAttributeTagProcessor extends AbstractStand
     private Cache<String, String> localUrlSuffixCaches = CacheBuilder.newBuilder()
             .maximumSize(500L)
             .expireAfterAccess(5, TimeUnit.MINUTES)
-//            .softValues()
+            .expireAfterWrite(1, TimeUnit.HOURS)
+            .weakKeys()
             .build();
 
     /**
@@ -84,17 +85,11 @@ public class AbstractResourceLocationAttributeTagProcessor extends AbstractStand
         this.outputAttrName = outputAttrName;
 
         // 总开关启用，其它的可以启用
-        if (dynamicProcessConf.isEnableProcess()) {
-            // 远程未启用，则本地替换也停用
-            if (!dynamicProcessConf.isEnableRemoteReplace()) {
-                dynamicProcessConf.setEnableLocalReplace(false);
-            }
-        } else {
+        if (!dynamicProcessConf.isEnableProcess()) {
             // 未启用总的，其它全部领用
             dynamicProcessConf.setEnableLocalReplace(false);
             dynamicProcessConf.setEnableRemoteReplace(false);
         }
-
     }
 
     @Override
@@ -116,17 +111,26 @@ public class AbstractResourceLocationAttributeTagProcessor extends AbstractStand
         }
         String targetUrl = HtmlEscape.escapeHtml4Xml(expressionResult == null ? "" : expressionResult.toString());
 
+        // 全局未开启时不处理
         if (!dynamicProcessConf.isEnableProcess()) {
             structureHandler.setAttribute(outputAttrName, targetUrl);
             return;
         }
 
+        // 如果已经是http前缀的地址了，不用处理
         Matcher matcher = HTTP_URL_PATTERN.matcher(targetUrl);
         if (matcher.matches()) {
             structureHandler.setAttribute(outputAttrName, targetUrl);
             return;
         }
         String contextPath = requestContext.getContextPath();
+
+        // 如果地址在排除列表中，直接返回
+        if (isExcludedPath(contextPath, targetUrl)) {
+            structureHandler.setAttribute(outputAttrName, targetUrl);
+            return;
+        }
+
         if (dynamicProcessConf.isEnableRemoteReplace() && isReplaceRemoteLocation(contextPath, targetUrl)) {
             ApplicationContext applicationContext = SpringContextUtils.getApplicationContext(context);
             DynamicResourceLocationService resourceLocationService = getDynamicResourceLocationService(applicationContext);
@@ -136,7 +140,7 @@ public class AbstractResourceLocationAttributeTagProcessor extends AbstractStand
                 queryUrl = queryUrl.substring(contextPath.length());
             }
             String remoteUrl = resourceLocationService.findRemoteUrl(queryUrl);
-            if(StringUtils.isNotBlank(remoteUrl)) {
+            if (StringUtils.isNotBlank(remoteUrl)) {
                 targetUrl = remoteUrl;
             }
         } else if (dynamicProcessConf.isEnableLocalReplace() && StringUtils.isNotBlank(dynamicProcessConf.getLocalReplaceSuffix())) {
@@ -145,6 +149,41 @@ public class AbstractResourceLocationAttributeTagProcessor extends AbstractStand
 
         LOGGER.debug("解析值 {}==>{}", expressionResult, targetUrl);
         structureHandler.setAttribute(outputAttrName, targetUrl);
+    }
+
+    /**
+     * 判断指定的路径是否是要排除的路径
+     *
+     * @param contextPath
+     * @param url 请求地址
+     * @return
+     */
+    private boolean isExcludedPath(String contextPath, String url) {
+        url = getPurePath(url);
+
+        if (dynamicProcessConf.isExcludedPath(url)) {
+            return true;
+        }
+
+        return dynamicProcessConf.isExcludedPath(contextPath + url);
+    }
+
+    /**
+     * 获取不带参数的路径参数
+     *
+     * @param url
+     * @return
+     */
+    private String getPurePath(String url) {
+        if (url.indexOf('?') > 0) {
+            url = url.substring(0, url.lastIndexOf('?') - 1);
+        }
+
+        if (url.indexOf('#') > 0) {
+            url = url.substring(0, url.lastIndexOf('#') - 1);
+        }
+
+        return url;
     }
 
     /**
