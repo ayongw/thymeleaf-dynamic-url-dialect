@@ -142,7 +142,7 @@ public class AbstractResourceLocationAttributeTagProcessor extends AbstractStand
                 targetUrl = remoteUrl;
             }
         } else if (dynamicProcessConf.isEnableLocalReplace() && StringUtils.isNotBlank(dynamicProcessConf.getLocalReplaceSuffix())) {
-            targetUrl = getLocalSuffixUrl(judgePath);
+            targetUrl = getLocalSuffixUrl(InnerUtils.getPurePath(targetUrl));
         }
 
         LOGGER.debug("解析值 {}==>{}", expressionResult, targetUrl);
