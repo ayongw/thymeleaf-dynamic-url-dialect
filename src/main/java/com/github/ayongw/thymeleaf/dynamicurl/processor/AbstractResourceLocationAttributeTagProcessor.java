@@ -3,6 +3,7 @@ package com.github.ayongw.thymeleaf.dynamicurl.processor;
 
 import com.github.ayongw.thymeleaf.dynamicurl.dialect.DynamicProcessConf;
 import com.github.ayongw.thymeleaf.dynamicurl.service.DynamicResourceLocationService;
+import com.github.ayongw.thymeleaf.dynamicurl.utils.InnerUtils;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.apache.commons.io.FilenameUtils;
@@ -124,27 +125,24 @@ public class AbstractResourceLocationAttributeTagProcessor extends AbstractStand
             return;
         }
         String contextPath = requestContext.getContextPath();
+        // 去掉Servlet前缀、去掉后置参数后的用于判断的参数
+        String judgePath = StringUtils.removeStartIgnoreCase(InnerUtils.getPurePath(targetUrl), contextPath);
 
         // 如果地址在排除列表中，直接返回
-        if (isExcludedPath(contextPath, targetUrl)) {
+        if (isExcludedPath(judgePath)) {
             structureHandler.setAttribute(outputAttrName, targetUrl);
             return;
         }
 
-        if (dynamicProcessConf.isEnableRemoteReplace() && isReplaceRemoteLocation(contextPath, targetUrl)) {
+        if (dynamicProcessConf.isEnableRemoteReplace() && isReplaceRemoteLocation(judgePath)) {
             ApplicationContext applicationContext = SpringContextUtils.getApplicationContext(context);
             DynamicResourceLocationService resourceLocationService = getDynamicResourceLocationService(applicationContext);
-            String queryUrl = targetUrl;
-            if (StringUtils.isNotBlank(contextPath) && !"/".equals(contextPath)
-                    && StringUtils.startsWithIgnoreCase(queryUrl, contextPath)) {
-                queryUrl = queryUrl.substring(contextPath.length());
-            }
-            String remoteUrl = resourceLocationService.findRemoteUrl(queryUrl);
+            String remoteUrl = resourceLocationService.findRemoteUrl(judgePath);
             if (StringUtils.isNotBlank(remoteUrl)) {
                 targetUrl = remoteUrl;
             }
         } else if (dynamicProcessConf.isEnableLocalReplace() && StringUtils.isNotBlank(dynamicProcessConf.getLocalReplaceSuffix())) {
-            targetUrl = getLocalSuffixUrl(targetUrl);
+            targetUrl = getLocalSuffixUrl(judgePath);
         }
 
         LOGGER.debug("解析值 {}==>{}", expressionResult, targetUrl);
@@ -154,36 +152,11 @@ public class AbstractResourceLocationAttributeTagProcessor extends AbstractStand
     /**
      * 判断指定的路径是否是要排除的路径
      *
-     * @param contextPath
      * @param url 请求地址
      * @return
      */
-    private boolean isExcludedPath(String contextPath, String url) {
-        url = getPurePath(url);
-
-        if (dynamicProcessConf.isExcludedPath(url)) {
-            return true;
-        }
-
-        return dynamicProcessConf.isExcludedPath(contextPath + url);
-    }
-
-    /**
-     * 获取不带参数的路径参数
-     *
-     * @param url
-     * @return
-     */
-    private String getPurePath(String url) {
-        if (url.indexOf('?') > 0) {
-            url = url.substring(0, url.lastIndexOf('?') - 1);
-        }
-
-        if (url.indexOf('#') > 0) {
-            url = url.substring(0, url.lastIndexOf('#') - 1);
-        }
-
-        return url;
+    private boolean isExcludedPath(String url) {
+        return dynamicProcessConf.isExcludedPath(url);
     }
 
     /**
@@ -195,22 +168,20 @@ public class AbstractResourceLocationAttributeTagProcessor extends AbstractStand
     private String getLocalSuffixUrl(final String localUrl) {
         try {
             return localUrlSuffixCaches.get(localUrl, () -> {
-                String ext = getFileExt(localUrl);
-                boolean flag = true;
-                if (StringUtils.isBlank(ext)
-                        || (StringUtils.isNotBlank(minSuffixTypes) && !minSuffixTypes.contains(ext + ","))) {
-                    flag = false;
+                String ext = InnerUtils.getFileExt(localUrl);
+                if (StringUtils.isBlank(ext)) {
+                    return localUrl;
                 }
-                if (flag) {
-                    String path = localUrl.substring(0, localUrl.lastIndexOf("/") + 1);
-                    String fileName = FilenameUtils.getName(localUrl);
-                    if (!StringUtils.endsWithIgnoreCase(fileName, dynamicProcessConf.getLocalReplaceSuffix() + "." + ext)) {
-                        fileName = suffixFileName(localUrl, dynamicProcessConf.getLocalReplaceSuffix());
-                        return path + fileName;
-                    }
+                if (StringUtils.isNotBlank(minSuffixTypes) && !minSuffixTypes.contains(ext + ",")) {
+                    return localUrl;
                 }
 
-
+                String path = localUrl.substring(0, localUrl.lastIndexOf("/") + 1);
+                String fileName = FilenameUtils.getName(localUrl);
+                if (!StringUtils.endsWithIgnoreCase(fileName, dynamicProcessConf.getLocalReplaceSuffix() + "." + ext)) {
+                    fileName = InnerUtils.suffixFileName(localUrl, dynamicProcessConf.getLocalReplaceSuffix());
+                    return path + fileName;
+                }
                 return localUrl;
             });
         } catch (ExecutionException e) {
@@ -219,31 +190,20 @@ public class AbstractResourceLocationAttributeTagProcessor extends AbstractStand
         return localUrl;
     }
 
-    public static String suffixFileName(String fileName, String suffix) {
-        String ext = FilenameUtils.getExtension(fileName);
-        String result = FilenameUtils.getBaseName(fileName) + suffix;
-        if (StringUtils.isBlank(ext)) {
-            return result;
-        }
-        return result + "." + ext;
-    }
-
     /**
      * 是否是可替换为远程资源的本地资源url
      *
-     * @param contextPath 当前环境下下文地址
-     * @param url         资源地址
+     * @param url 资源地址
      * @return false：未配置本地与远程地址映射转换
      */
-    private boolean isReplaceRemoteLocation(String contextPath, String url) {
+    private boolean isReplaceRemoteLocation(String url) {
         String[] localToRemotePrefixes = dynamicProcessConf.getRemoteReplacePrefixes();
         if (null == localToRemotePrefixes || localToRemotePrefixes.length == 0) {
             return false;
         }
 
         for (String prefix : localToRemotePrefixes) {
-            if (StringUtils.startsWithIgnoreCase(url, prefix)
-                    || StringUtils.startsWithIgnoreCase(url, contextPath + prefix)) {
+            if (StringUtils.startsWithIgnoreCase(url, prefix)) {
                 return true;
             }
         }
@@ -265,34 +225,6 @@ public class AbstractResourceLocationAttributeTagProcessor extends AbstractStand
         dynamicResourceLocationService = applicationContext.getBean(DynamicResourceLocationService.class);
         dynamicResourceLocationServiceLoaded = true;
         return dynamicResourceLocationService;
-    }
-
-
-    /**
-     * 获取文件扩展名
-     *
-     * @param filePath 文件路径
-     * @return 文件的扩展名
-     */
-    private String getFileExt(String filePath) {
-        if (StringUtils.isBlank(filePath)) {
-            return "";
-        }
-        int idx = filePath.lastIndexOf(".");
-        if (idx == -1) {
-            return "";
-        }
-
-        StringBuilder sb = new StringBuilder(filePath.substring(idx + 1));
-        idx = sb.lastIndexOf("#");
-        if (idx > 0) {
-            sb = sb.delete(idx, sb.length());
-        }
-        idx = sb.lastIndexOf("?");
-        if (idx > 0) {
-            sb = sb.delete(idx, sb.length());
-        }
-        return sb.toString();
     }
 
 }
