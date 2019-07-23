@@ -10,8 +10,8 @@ public class InnerUtils {
     /**
      * 获取不带参数的路径参数
      *
-     * @param url
-     * @return
+     * @param url 原始请求路径
+     * @return 不带参数的请求地址
      */
     public static String getPurePath(String url) {
         if (url.indexOf('?') > 0) {
@@ -49,7 +49,7 @@ public class InnerUtils {
      *
      * @param fileName 原文件名
      * @param suffix   后缀
-     * @return
+     * @return 添加了后缀的文件名
      */
     public static String suffixFileName(String fileName, String suffix) {
         String ext = FilenameUtils.getExtension(fileName);
