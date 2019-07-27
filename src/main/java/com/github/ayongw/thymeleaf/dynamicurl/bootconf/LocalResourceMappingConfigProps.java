@@ -28,6 +28,12 @@ public class LocalResourceMappingConfigProps {
      * enable the remote replace process?
      */
     private boolean enableRemote = true;
+    /**
+     * enable the resource translator cache
+     * <p>
+     * 是否启用转换服务缓存
+     */
+    private boolean enableCache = true;
 
     /**
      * local resource minified file suffix
@@ -81,6 +87,14 @@ public class LocalResourceMappingConfigProps {
 
     public void setEnableRemote(boolean enableRemote) {
         this.enableRemote = enableRemote;
+    }
+
+    public boolean isEnableCache() {
+        return enableCache;
+    }
+
+    public void setEnableCache(boolean enableCache) {
+        this.enableCache = enableCache;
     }
 
     public String getLocalSuffix() {

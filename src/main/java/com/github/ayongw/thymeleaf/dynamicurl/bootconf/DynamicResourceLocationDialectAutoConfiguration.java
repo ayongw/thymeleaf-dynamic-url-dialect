@@ -50,6 +50,7 @@ public class DynamicResourceLocationDialectAutoConfiguration {
         conf.setEnableLocalReplace(localResourceMapping.isEnableLocal());
         conf.setEnableRemoteReplace(localResourceMapping.isEnableRemote());
         conf.setLocalReplaceSuffix(localResourceMapping.getLocalSuffix());
+        conf.setEnableCache(localResourceMapping.isEnableCache());
 
         if (StringUtils.isNotBlank(localResourceMapping.getRemotePrefix())) {
             conf.setRemoteReplacePrefixes(StringUtils.split(localResourceMapping.getRemotePrefix()));

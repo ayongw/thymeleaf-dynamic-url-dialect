@@ -3,11 +3,9 @@ package com.github.ayongw.thymeleaf.dynamicurl.processor;
 
 import com.github.ayongw.thymeleaf.dynamicurl.dialect.DynamicProcessConf;
 import com.github.ayongw.thymeleaf.dynamicurl.service.DynamicResourceLocationService;
-import com.github.ayongw.thymeleaf.dynamicurl.utils.InnerUtils;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
+import com.github.ayongw.thymeleaf.dynamicurl.service.ResourceTranslatorService;
+import com.github.ayongw.thymeleaf.dynamicurl.service.impl.CacheResourceTranslatorServiceImpl;
+import com.github.ayongw.thymeleaf.dynamicurl.service.impl.SimpleResourceTranslatorServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -22,8 +20,6 @@ import org.thymeleaf.standard.processor.AbstractStandardExpressionAttributeTagPr
 import org.thymeleaf.templatemode.TemplateMode;
 import org.unbescape.html.HtmlEscape;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,17 +36,6 @@ public class AbstractResourceLocationAttributeTagProcessor extends AbstractStand
     private static final Pattern HTTP_URL_PATTERN = Pattern.compile("^(https?:)?//((.+?)+)(/.+?)?", Pattern.CASE_INSENSITIVE);
 
     private static final int PRECEDENCE = 10000;
-    /**
-     * 能适用压缩文件名后缀的文件类型
-     */
-    private String minSuffixTypes = "css,js,";
-
-    private Cache<String, String> localUrlSuffixCaches = CacheBuilder.newBuilder()
-            .maximumSize(500L)
-            .expireAfterAccess(5, TimeUnit.MINUTES)
-            .expireAfterWrite(1, TimeUnit.HOURS)
-            .weakKeys()
-            .build();
 
     /**
      * 处理后输出到的属性名
@@ -58,12 +43,12 @@ public class AbstractResourceLocationAttributeTagProcessor extends AbstractStand
     private String outputAttrName;
     private DynamicProcessConf dynamicProcessConf;
 
-    private DynamicResourceLocationService dynamicResourceLocationService;
+    private ResourceTranslatorService resourceTranslatorService;
 
     /**
      * 资源定义服务类获取标识
      */
-    private boolean dynamicResourceLocationServiceLoaded = false;
+    private boolean serviceInited = false;
 
     /**
      * @param dialectPrefix      前缀
@@ -103,6 +88,7 @@ public class AbstractResourceLocationAttributeTagProcessor extends AbstractStand
         2.判断是否是绝对url，如果是直接返回。
         3.
          */
+        initTranslatorService(context);
 
         final RequestContext requestContext =
                 (RequestContext) context.getVariable(SpringContextVariableNames.SPRING_REQUEST_CONTEXT);
@@ -124,109 +110,29 @@ public class AbstractResourceLocationAttributeTagProcessor extends AbstractStand
             structureHandler.setAttribute(outputAttrName, targetUrl);
             return;
         }
-        String contextPath = requestContext.getContextPath();
-        // 去掉Servlet前缀、去掉后置参数后的用于判断的参数
-        String judgePath = StringUtils.removeStartIgnoreCase(InnerUtils.getPurePath(targetUrl), contextPath);
 
-        // 如果地址在排除列表中，直接返回
-        if (isExcludedPath(judgePath)) {
-            structureHandler.setAttribute(outputAttrName, targetUrl);
-            return;
-        }
-
-        if (dynamicProcessConf.isEnableRemoteReplace() && isReplaceRemoteLocation(judgePath)) {
-            ApplicationContext applicationContext = SpringContextUtils.getApplicationContext(context);
-            DynamicResourceLocationService resourceLocationService = getDynamicResourceLocationService(applicationContext);
-            String remoteUrl = resourceLocationService.findRemoteUrl(judgePath);
-            if (StringUtils.isNotBlank(remoteUrl)) {
-                targetUrl = remoteUrl;
-            }
-        } else if (dynamicProcessConf.isEnableLocalReplace()
-                && StringUtils.isNotBlank(dynamicProcessConf.getLocalReplaceSuffix())
-                && !isReplaceRemoteLocation(judgePath)) {
-            targetUrl = getLocalSuffixUrl(InnerUtils.getPurePath(targetUrl));
-        }
-
+        targetUrl = resourceTranslatorService.translatePath(requestContext.getContextPath(), targetUrl);
         LOGGER.debug("解析值 {}==>{}", expressionResult, targetUrl);
         structureHandler.setAttribute(outputAttrName, targetUrl);
     }
 
     /**
-     * 判断指定的路径是否是要排除的路径
+     * 初始化转换服务类
      *
-     * @param url 请求地址
-     * @return
+     * @param context
      */
-    private boolean isExcludedPath(String url) {
-        return dynamicProcessConf.isExcludedPath(url);
-    }
-
-    /**
-     * 获取本地资源地址的转换地址
-     *
-     * @param localUrl 原始本地资源地址
-     * @return 转换后的地址
-     */
-    private String getLocalSuffixUrl(final String localUrl) {
-        try {
-            return localUrlSuffixCaches.get(localUrl, () -> {
-                String ext = InnerUtils.getFileExt(localUrl);
-                if (StringUtils.isBlank(ext)) {
-                    return localUrl;
-                }
-                if (StringUtils.isNotBlank(minSuffixTypes) && !minSuffixTypes.contains(ext + ",")) {
-                    return localUrl;
-                }
-
-                String path = localUrl.substring(0, localUrl.lastIndexOf("/") + 1);
-                String fileName = FilenameUtils.getName(localUrl);
-                if (!StringUtils.endsWithIgnoreCase(fileName, dynamicProcessConf.getLocalReplaceSuffix() + "." + ext)) {
-                    fileName = InnerUtils.suffixFileName(localUrl, dynamicProcessConf.getLocalReplaceSuffix());
-                    return path + fileName;
-                }
-                return localUrl;
-            });
-        } catch (ExecutionException e) {
-            LOGGER.warn("从本地缓存中获取资源url的本地压缩地址失败！", e);
-        }
-        return localUrl;
-    }
-
-    /**
-     * 是否是可替换为远程资源的本地资源url
-     *
-     * @param url 资源地址
-     * @return false：未配置本地与远程地址映射转换
-     */
-    private boolean isReplaceRemoteLocation(String url) {
-        String[] localToRemotePrefixes = dynamicProcessConf.getRemoteReplacePrefixes();
-        if (null == localToRemotePrefixes || localToRemotePrefixes.length == 0) {
-            return false;
+    private void initTranslatorService(ITemplateContext context) {
+        if (serviceInited) {
+            return;
         }
 
-        for (String prefix : localToRemotePrefixes) {
-            if (StringUtils.startsWithIgnoreCase(url, prefix)) {
-                return true;
-            }
+        ApplicationContext applicationContext = SpringContextUtils.getApplicationContext(context);
+        DynamicResourceLocationService dynamicResourceLocationService = applicationContext.getBean(DynamicResourceLocationService.class);
+
+        if (dynamicProcessConf.isEnableCache()) {
+            resourceTranslatorService = new CacheResourceTranslatorServiceImpl(dynamicProcessConf, dynamicResourceLocationService);
+        } else {
+            resourceTranslatorService = new SimpleResourceTranslatorServiceImpl(dynamicProcessConf, dynamicResourceLocationService);
         }
-
-        return false;
     }
-
-    /**
-     * 获取本地资源地址动态替换服务类
-     *
-     * @param applicationContext 当前Spring容器对象
-     * @return 服务实例对象
-     */
-    private DynamicResourceLocationService getDynamicResourceLocationService(ApplicationContext applicationContext) {
-        if (dynamicResourceLocationServiceLoaded) {
-            return dynamicResourceLocationService;
-        }
-
-        dynamicResourceLocationService = applicationContext.getBean(DynamicResourceLocationService.class);
-        dynamicResourceLocationServiceLoaded = true;
-        return dynamicResourceLocationService;
-    }
-
 }

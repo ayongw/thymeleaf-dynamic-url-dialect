@@ -40,6 +40,13 @@ public class DynamicProcessConf implements Serializable {
     private String[] remoteReplacePrefixes;
 
     /**
+     * enable the resource translator cache
+     * <p>
+     * 是否启用转换服务缓存
+     */
+    private boolean enableCache = true;
+
+    /**
      * 保存排除路径地址列表，用map存储用于加快查询
      */
     private Map<String, Boolean> excludePathMap;
@@ -94,6 +101,14 @@ public class DynamicProcessConf implements Serializable {
 
     public void setRemoteReplacePrefixes(String[] remoteReplacePrefixes) {
         this.remoteReplacePrefixes = remoteReplacePrefixes;
+    }
+
+    public boolean isEnableCache() {
+        return enableCache;
+    }
+
+    public void setEnableCache(boolean enableCache) {
+        this.enableCache = enableCache;
     }
 
     public void setExcludePaths(List<String> excludePaths) {
