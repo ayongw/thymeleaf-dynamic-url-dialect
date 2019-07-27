@@ -141,7 +141,9 @@ public class AbstractResourceLocationAttributeTagProcessor extends AbstractStand
             if (StringUtils.isNotBlank(remoteUrl)) {
                 targetUrl = remoteUrl;
             }
-        } else if (dynamicProcessConf.isEnableLocalReplace() && StringUtils.isNotBlank(dynamicProcessConf.getLocalReplaceSuffix())) {
+        } else if (dynamicProcessConf.isEnableLocalReplace()
+                && StringUtils.isNotBlank(dynamicProcessConf.getLocalReplaceSuffix())
+                && !isReplaceRemoteLocation(judgePath)) {
             targetUrl = getLocalSuffixUrl(InnerUtils.getPurePath(targetUrl));
         }
 
