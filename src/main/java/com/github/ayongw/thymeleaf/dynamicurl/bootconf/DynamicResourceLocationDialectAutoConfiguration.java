@@ -3,7 +3,7 @@ package com.github.ayongw.thymeleaf.dynamicurl.bootconf;
 import com.github.ayongw.thymeleaf.dynamicurl.dialect.DynamicProcessConf;
 import com.github.ayongw.thymeleaf.dynamicurl.dialect.DynamicResourceLocationDialect;
 import com.github.ayongw.thymeleaf.dynamicurl.service.DynamicResourceLocationService;
-import com.github.ayongw.thymeleaf.dynamicurl.service.PropertyDynamicResourceLocationService;
+import com.github.ayongw.thymeleaf.dynamicurl.service.impl.PropertyDynamicResourceLocationServiceImpl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -39,7 +39,7 @@ public class DynamicResourceLocationDialectAutoConfiguration {
     public DynamicResourceLocationService propertyDynamicResourceLocationService() {
         Map<String, String> remoteUrlMap = localResourceMapping.getRemoteUrlMap();
 
-        return new PropertyDynamicResourceLocationService(remoteUrlMap);
+        return new PropertyDynamicResourceLocationServiceImpl(remoteUrlMap);
     }
 
 
@@ -50,6 +50,7 @@ public class DynamicResourceLocationDialectAutoConfiguration {
         conf.setEnableLocalReplace(localResourceMapping.isEnableLocal());
         conf.setEnableRemoteReplace(localResourceMapping.isEnableRemote());
         conf.setLocalReplaceSuffix(localResourceMapping.getLocalSuffix());
+        conf.setEnableCache(localResourceMapping.isEnableCache());
 
         if (StringUtils.isNotBlank(localResourceMapping.getRemotePrefix())) {
             conf.setRemoteReplacePrefixes(StringUtils.split(localResourceMapping.getRemotePrefix()));

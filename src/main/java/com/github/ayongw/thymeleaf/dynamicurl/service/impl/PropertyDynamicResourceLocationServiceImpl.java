@@ -1,5 +1,6 @@
-package com.github.ayongw.thymeleaf.dynamicurl.service;
+package com.github.ayongw.thymeleaf.dynamicurl.service.impl;
 
+import com.github.ayongw.thymeleaf.dynamicurl.service.DynamicResourceLocationService;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
@@ -9,11 +10,11 @@ import java.util.Map;
  *
  * @author jiangguangtao
  */
-public class PropertyDynamicResourceLocationService implements DynamicResourceLocationService {
+public class PropertyDynamicResourceLocationServiceImpl implements DynamicResourceLocationService {
 
     private Map<String, String> resourceMap;
 
-    public PropertyDynamicResourceLocationService(Map<String, String> resourceMap) {
+    public PropertyDynamicResourceLocationServiceImpl(Map<String, String> resourceMap) {
         this.resourceMap = resourceMap;
     }
 
