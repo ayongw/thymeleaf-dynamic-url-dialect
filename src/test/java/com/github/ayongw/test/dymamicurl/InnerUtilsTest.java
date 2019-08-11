@@ -19,11 +19,15 @@ public class InnerUtilsTest {
         logger.info("原始地址：{}", url);
         String purePath = InnerUtils.getPurePath(url);
         logger.info("转换后的地址：{}", purePath);
-
         Assert.assertEquals("/admin/article/updateArticle.htm", purePath);
 
 
         url = "/admin/article/updateArticle.htm#/sdfh/234?id=5&username=2349890";
+        purePath = InnerUtils.getPurePath(url);
+        Assert.assertEquals("/admin/article/updateArticle.htm", purePath);
+
+
+        url = "/admin/article/updateArticle.htm;jsessionid=y7eJc5z0H-SuJj9N0snVkn09IqT1Y83RyLxr";
         purePath = InnerUtils.getPurePath(url);
         Assert.assertEquals("/admin/article/updateArticle.htm", purePath);
     }

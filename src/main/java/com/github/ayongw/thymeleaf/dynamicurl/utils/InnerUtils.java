@@ -14,12 +14,16 @@ public class InnerUtils {
      * @return 不带参数的请求地址
      */
     public static String getPurePath(String url) {
-        if (url.indexOf('?') > 0) {
+        if (url.indexOf('?') >= 0) {
             url = url.substring(0, url.lastIndexOf('?'));
         }
 
-        if (url.indexOf('#') > 0) {
+        if (url.indexOf('#') >= 0) {
             url = url.substring(0, url.lastIndexOf('#'));
+        }
+
+        if (url.indexOf(';') >= 0) {
+            url = url.substring(0, url.lastIndexOf(';'));
         }
 
         return url;
