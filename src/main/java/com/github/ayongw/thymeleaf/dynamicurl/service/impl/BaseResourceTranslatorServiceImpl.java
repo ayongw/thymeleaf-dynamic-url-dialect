@@ -13,10 +13,6 @@ import org.apache.commons.lang3.StringUtils;
  * @author jiangguangtao
  */
 public abstract class BaseResourceTranslatorServiceImpl implements ResourceTranslatorService {
-    /**
-     * 能适用压缩文件名后缀的文件类型
-     */
-    private final String minSuffixTypes = "css,js,";
 
     private DynamicProcessConf dynamicProcessConf;
     private DynamicResourceLocationService resourceLocationService;
@@ -76,13 +72,20 @@ public abstract class BaseResourceTranslatorServiceImpl implements ResourceTrans
         if (StringUtils.isBlank(ext)) {
             return localUrl;
         }
-        if (!minSuffixTypes.contains(ext + ",")) {
+        if (!dynamicProcessConf.getMinSuffixTypes().contains(ext + ',')) {
             return localUrl;
         }
+        // 如果已经是压缩的文件了，直接返回
+        if (StringUtils.isNotBlank(dynamicProcessConf.getLocalReplaceSuffix())) {
+            String minedExt = dynamicProcessConf.getLocalReplaceSuffix() + "." + ext;
+            if (StringUtils.endsWithIgnoreCase(localUrl, minedExt)) {
+                return localUrl;
+            }
+        }
 
-        String path = localUrl.substring(0, localUrl.lastIndexOf("/") + 1);
+        String path = localUrl.substring(0, localUrl.lastIndexOf('/') + 1);
         String fileName = FilenameUtils.getName(localUrl);
-        if (!StringUtils.endsWithIgnoreCase(fileName, dynamicProcessConf.getLocalReplaceSuffix() + "." + ext)) {
+        if (!StringUtils.endsWithIgnoreCase(fileName, dynamicProcessConf.getLocalReplaceSuffix() + '.' + ext)) {
             fileName = InnerUtils.suffixFileName(localUrl, dynamicProcessConf.getLocalReplaceSuffix());
             return path + fileName;
         }

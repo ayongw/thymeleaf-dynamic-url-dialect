@@ -21,11 +21,14 @@ public class LocalResourceMappingConfigProps {
 
     /**
      * enable the local replace process?  replace local *.js file to *.min.js
-     * 是否替换地址静态资源文件为压缩资源文件
+     * <br/>
+     * 是否替换地址静态资源文件为压缩资源文件 .js文件替换为*.min.js文件
      */
     private boolean enableLocal = true;
     /**
      * enable the remote replace process?
+     * <br/>
+     * 将资源文件的引用替换为远程cdn地址
      */
     private boolean enableRemote = true;
     /**
@@ -41,6 +44,13 @@ public class LocalResourceMappingConfigProps {
      * 本地压缩的静态资源文件名称后缀
      */
     private String localSuffix = ".min";
+
+    /**
+     * supported mininfied file ext types, split by ","
+     * <p>
+     * 支持压缩的文件类型
+     */
+    private String minSuffixTypes = "css,js";
 
     /**
      * local resource replace with remote resource location path prefix.
@@ -103,6 +113,14 @@ public class LocalResourceMappingConfigProps {
 
     public void setLocalSuffix(String localSuffix) {
         this.localSuffix = localSuffix;
+    }
+
+    public String getMinSuffixTypes() {
+        return minSuffixTypes;
+    }
+
+    public void setMinSuffixTypes(String minSuffixTypes) {
+        this.minSuffixTypes = minSuffixTypes;
     }
 
     public String getRemotePrefix() {

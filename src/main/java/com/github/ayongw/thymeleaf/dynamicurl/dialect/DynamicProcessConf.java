@@ -38,6 +38,10 @@ public class DynamicProcessConf implements Serializable {
      * 本地资源文件替换为远程资源文件位置的前缀
      */
     private String[] remoteReplacePrefixes;
+    /**
+     * 支持的压缩文件类型，用于替换本地文件到压缩文件，添加 {@code localReplaceSuffix} 指定的后缀
+     */
+    private String minSuffixTypes = "css,js,";
 
     /**
      * enable the resource translator cache
@@ -135,6 +139,13 @@ public class DynamicProcessConf implements Serializable {
         return null != excludePathMap && excludePathMap.containsKey(StringUtils.lowerCase(path));
     }
 
+    public String getMinSuffixTypes() {
+        return minSuffixTypes;
+    }
+
+    public void setMinSuffixTypes(String minSuffixTypes) {
+        this.minSuffixTypes = minSuffixTypes;
+    }
 
     @Override
     public String toString() {
