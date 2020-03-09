@@ -53,11 +53,17 @@ public class DynamicResourceLocationDialectAutoConfiguration {
         conf.setEnableCache(localResourceMapping.isEnableCache());
 
         if (StringUtils.isNotBlank(localResourceMapping.getRemotePrefix())) {
-            conf.setRemoteReplacePrefixes(StringUtils.split(localResourceMapping.getRemotePrefix()));
+            conf.setRemoteReplacePrefixes(StringUtils.split(localResourceMapping.getRemotePrefix(), ','));
         }
 
         if (CollectionUtils.isNotEmpty(localResourceMapping.getExcludePaths())) {
             conf.setExcludePaths(localResourceMapping.getExcludePaths());
+        }
+
+        if (StringUtils.isNotBlank(localResourceMapping.getMinSuffixTypes())) {
+            String[] splits = StringUtils.split(localResourceMapping.getMinSuffixTypes(), ',');
+            String suffix = StringUtils.join(splits, ',');
+            conf.setMinSuffixTypes(suffix);
         }
 
         return new DynamicResourceLocationDialect(conf);

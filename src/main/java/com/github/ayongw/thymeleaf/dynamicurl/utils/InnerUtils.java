@@ -40,7 +40,7 @@ public class InnerUtils {
         if (StringUtils.isBlank(filePath)) {
             return "";
         }
-        int idx = filePath.lastIndexOf(".");
+        int idx = filePath.lastIndexOf('.');
         if (idx == -1) {
             return "";
         }
