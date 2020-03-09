@@ -8,7 +8,7 @@
 <dependency>
   <groupId>com.github.ayongw</groupId>
   <artifactId>thymeleaf-dynamic-url-dialect</artifactId>
-  <version>1.3.1</version>
+  <version>1.3.2</version>
 </dependency>
 ```
 
